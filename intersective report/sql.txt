@@ -1,0 +1,85 @@
+
+select achieve_achievements.name, test.count
+
+from achieve_achievements join (SELECT 
+ achieve_user_achievements.achievement_id, count (1)  
+ 
+FROM 
+  public.achieve_user_achievements, 
+  public.achieve_achievements
+WHERE 
+  achieve_user_achievements.achievement_id = achieve_achievements.id 
+GROUP BY
+  achieve_user_achievements.achievement_id, achieve_achievements.name) as test
+
+ on  achieve_achievements.id=test.achievement_id 
+ 
+############################################################################################
+
+SELECT 
+  core_team_stats.user_id, core_team_stats.stat_id, max(core_team_stats.created) as lastest_created
+FROM 
+  public.core_team_stats
+  
+group by core_team_stats.user_id, core_team_stats.stat_id
+
+order by core_team_stats.user_id
+
+
+######################################################################################################
+
+select core_team_stats.team_id, core_team_stats.stat_id, AVG (core_team_stats.stat_value::integer) as team_average
+
+from public.core_team_stats join
+(SELECT 
+  core_team_stats.user_id, core_team_stats.stat_id, max(core_team_stats.created) as latest_created
+FROM 
+  public.core_team_stats
+  
+group by core_team_stats.user_id, core_team_stats.stat_id) as latest
+
+on public.core_team_stats.created = latest.latest_created and 
+public.core_team_stats.user_id = latest.user_id and public.core_team_stats.stat_id=latest.stat_id
+
+group by core_team_stats.team_id, core_team_stats.stat_id
+
+order by team_id
+
+###############################################################################################################
+
+SELECT 
+  core_experiences.name as experience_name,
+  core_programs.name as program_name,
+  project_projects.name as project_name,
+  project_timelines.start_date as project_start_date,
+  core_licenses.role, 
+  core_users.name as participant_name,
+  core_enrolments.participant_id, 
+  core_enrolments.participant_email, 
+  core_teams.name as team_name, 
+  core_users.lastlog,
+  public.core_users.activated_at
+
+FROM 
+  public.core_licenses, 
+  public.core_enrolments, 
+  public.core_users,
+  public.core_programs, 
+  public.core_teams, 
+  public.core_team_members, 
+  public.core_experiences, 
+  public.project_timelines, 
+  public.project_projects
+
+WHERE 
+  core_enrolments.license_id = core_licenses.id AND
+  core_users.id = core_enrolments.user_id AND
+  core_programs.id = core_enrolments.program_id AND
+  core_teams.program_id = core_programs.id AND
+  core_team_members.team_id = core_teams.id AND
+  core_team_members.user_id = core_users.id AND
+  core_experiences.id = core_programs.experience_id AND project_timelines.project_id = project_projects.id AND
+  project_timelines.program_id = core_programs.id
+
+
+######################################################################################
